@@ -1,4 +1,9 @@
+from sentence_transformers import SentenceTransformer
+from numpy import dot , linalg
 
+
+
+model = SentenceTransformer("all-MiniLM-L6-v2") 
 
 N = 500
 text =""
@@ -21,10 +26,15 @@ def chunk_text(text : str , chunk_size : int ) -> list[str]:
         
     return chunks
 
+def cosim_similarity(chunkonevec , chunktwovec) :
+    return dot(chunkonevec , chunktwovec)/(linalg.norm(chunkonevec) * linalg.norm(chunktwovec))
+
 with open("data/data.txt", "r", encoding="utf-8") as file:
     text = file.read()
 
 chunks = chunk_text(text,N)
-print(len(chunks))
-print(chunks[0])
-print(chunks[-1])
+firstvec = model.encode(chunks[0])
+secondvec = model.encode(chunks[1])
+
+results = cosim_similarity(firstvec,firstvec)
+print(results)
