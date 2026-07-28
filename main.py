@@ -26,6 +26,17 @@ def chunk_text(text : str , chunk_size : int ) -> list[str]:
         
     return chunks
 
+def retrieve(query : str , chunks : list[str] , model , top_k = 3) :
+    question_vector = model.encode(query)
+    i = 0
+    numbers = []
+    for chunk in chunks :
+        vector = model.encode(chunk)
+        numbers.append((cosim_similarity(question_vector , vector) , chunk))
+    numbers.sort(reverse=True)
+    results = numbers[0:top_k]
+    return results
+
 def cosim_similarity(chunkonevec , chunktwovec) :
     return dot(chunkonevec , chunktwovec)/(linalg.norm(chunkonevec) * linalg.norm(chunktwovec))
 
@@ -33,8 +44,8 @@ with open("data/data.txt", "r", encoding="utf-8") as file:
     text = file.read()
 
 chunks = chunk_text(text,N)
-firstvec = model.encode(chunks[0])
-secondvec = model.encode(chunks[1])
 
-results = cosim_similarity(firstvec,firstvec)
-print(results)
+qst = input("ask your question :\n")
+
+top = retrieve(qst , chunks ,model)
+print(top)
