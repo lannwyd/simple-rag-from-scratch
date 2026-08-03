@@ -3,6 +3,8 @@ from numpy import dot , linalg
 import os
 from dotenv import load_dotenv 
 from groq import Groq
+import re
+
 
 load_dotenv()
 
@@ -21,14 +23,16 @@ def chunk_text(text : str , chunk_size : int ) -> list[str]:
     chunks = []
     current_chunk= ""
 
-    sentences = text.split(". ")
+    sentences = re.split(r'(?<!\b[A-Z])\.\s+', text)
 
     for sentence in sentences :
         if len(current_chunk + sentence) < chunk_size :
             current_chunk += sentence + ". "
         else :
             chunks.append(current_chunk) 
-            current_chunk = sentence
+            overlap_words = current_chunk.split()[-8:]   # last 8 words, not 50 raw characters
+            overlap_text = " ".join(overlap_words)
+            current_chunk = overlap_text + sentence +". "
     if current_chunk :
         chunks.append(current_chunk)
         
@@ -86,8 +90,10 @@ chunks = chunk_text(text,N)
 qst = input("ask your question :\n")
 top = retrieve(qst , chunks ,model)
 
-cominedchunks = ""
+combinedchunks = ""
 for number , chunk in top:
-    cominedchunks += chunk
+    combinedchunks += chunk
+for number , chunk in top:
+    print(f"{chunk}\n\n\n")
 
-generate_answer(qst , cominedchunks)
+generate_answer(qst , combinedchunks)
